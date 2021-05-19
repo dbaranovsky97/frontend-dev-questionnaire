@@ -1,0 +1,23 @@
+.form-container {
+    display: flex;
+    flex-direction: column;  
+}
+
+.dialog-footer {
+    display: flex;
+    justify-content: center;
+}
+
+.hobby-list {
+    mat-label {
+        font-size: 1.2rem;
+    } 
+}
+
+mat-form-field {
+    mat-spinner {
+        position: absolute;
+        right: 0;
+        top: 0;
+    }
+}

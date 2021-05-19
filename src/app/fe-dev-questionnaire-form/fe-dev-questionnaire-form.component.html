@@ -1,0 +1,78 @@
+<h1 mat-dialog-title>Questionnaire of Frontend Developer</h1>
+<div mat-dialog-content>
+    <div class="form-container" [formGroup]="form">
+        <mat-form-field appearance="fill">
+            <mat-label>First Name</mat-label>
+            <input matInput formControlName="firstName" required>
+            <mat-error *ngIf="firstName.invalid">{{getErrorMessage(firstName)}}</mat-error>
+        </mat-form-field>
+        <br>
+
+        <mat-form-field appearance="fill">
+            <mat-label>Last Name</mat-label>
+            <input matInput formControlName="lastName" required>
+            <mat-error *ngIf="lastName.invalid">{{getErrorMessage(lastName)}}</mat-error>
+        </mat-form-field>
+        <br>
+
+        <mat-form-field appearance="fill">
+            <mat-label>Choose a date</mat-label>
+            <input matInput [matDatepicker]="picker" formControlName="dateOfBirth" required>
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+            <mat-error *ngIf="dateOfBirth.invalid">{{getErrorMessage(dateOfBirth, 'date')}}</mat-error>
+        </mat-form-field>
+        <br>
+
+        <mat-form-field appearance="fill">
+            <mat-label>Framework</mat-label>
+            <mat-select formControlName="framework" required>
+                <mat-option *ngFor="let fw of frameworks" [value]="fw.name">
+                    {{fw.name}}
+                </mat-option>
+            </mat-select>
+            <mat-error *ngIf="framework.invalid">{{getErrorMessage(framework, 'select')}}</mat-error>
+        </mat-form-field>
+        <br>
+
+        <mat-form-field appearance="fill">
+            <mat-label>Version</mat-label>
+            <mat-select formControlName="frameworkVersion" required>
+                <mat-option *ngFor="let fwVersion of frameworkVersions" [value]="fwVersion">
+                    {{fwVersion}}
+                </mat-option>
+            </mat-select>
+            <mat-error *ngIf="frameworkVersion.invalid">{{getErrorMessage(frameworkVersion, 'select')}}</mat-error>
+        </mat-form-field>
+        <br>
+
+        <mat-form-field appearance="fill" class="email-form-control">
+            <mat-label>Email</mat-label>
+            <input matInput placeholder="pat@example.com" formControlName="email" required>
+            <mat-spinner *ngIf="email.pending" [diameter]="20"></mat-spinner>
+            <mat-error *ngIf="email.invalid">{{getErrorMessage(email)}}</mat-error>
+        </mat-form-field>
+        <br>
+
+        <div class="hobby-list">
+            <mat-label>Hobby</mat-label>
+            <button mat-icon-button color="primary" (click)="addHobby()" aria-label="Example icon button with a delete icon">
+                <mat-icon *ngIf="!hobby.disabled">add_circle</mat-icon>
+            </button>
+            <mat-list role="list">
+                <mat-list-item *ngFor="let hobbyItem of hobby.value">
+                    {{hobbyItem.name}}, duration: {{hobbyItem.duration}}
+                    <button mat-icon-button color="primary" (click)="removeHobby(hobbyItem)"
+                        aria-label="Example icon button with a delete icon">
+                        <mat-icon *ngIf="!hobby.disabled">close</mat-icon>
+                    </button>
+                </mat-list-item>
+            </mat-list>
+            <mat-error *ngIf="hobby.invalid">At least one hobby required</mat-error>
+        </div>
+    </div>
+</div>
+<div mat-dialog-actions class="dialog-footer">
+    <button mat-raised-button color="primary" (click)="save()" [disabled]="!form.valid">Submit</button>
+    <button mat-raised-button mat-dialog-close>Cancel</button>
+</div>

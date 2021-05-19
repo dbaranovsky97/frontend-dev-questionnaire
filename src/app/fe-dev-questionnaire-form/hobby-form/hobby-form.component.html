@@ -1,0 +1,22 @@
+<h1 mat-dialog-title>Hobby</h1>
+<div mat-dialog-content>
+    <div class="form-container" [formGroup]="form">
+        <mat-form-field appearance="fill">
+            <mat-label>Name</mat-label>
+            <input matInput formControlName="name" required>
+            <mat-error *ngIf="name.invalid">You must enter a value</mat-error>
+        </mat-form-field>
+        <br>
+
+        <mat-form-field appearance="fill">
+            <mat-label>Duration</mat-label>
+            <input matInput formControlName="duration" required>
+            <mat-error *ngIf="duration.invalid">You must enter a value</mat-error>
+        </mat-form-field>
+        <br>
+    </div>
+</div>
+<div mat-dialog-actions class="dialog-footer">
+    <button mat-raised-button color="primary" [mat-dialog-close]="form.value" [disabled]="form.invalid">Ok</button>
+    <button mat-raised-button mat-dialog-close>Cancel</button>
+</div>
