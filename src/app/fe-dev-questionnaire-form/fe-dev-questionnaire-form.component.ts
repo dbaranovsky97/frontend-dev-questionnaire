@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormControl, Validators } from '@angular/forms';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -8,13 +8,14 @@ import { IsEmailExistsValidator } from './email-exists.validator';
 import frameworks from './frameworks-data';
 import { Hobby } from './hobby-form/hobby';
 import { HobbyFormComponent } from './hobby-form/hobby-form.component';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-fe-dev-questionnaire-form',
   templateUrl: './fe-dev-questionnaire-form.component.html',
   styleUrls: ['./fe-dev-questionnaire-form.component.scss']
 })
-export class FeDevQuestionnaireFormComponent implements OnInit {
+export class FeDevQuestionnaireFormComponent implements OnInit, OnDestroy {
   form = this.fb.group({
     firstName: ['', [Validators.required]],
     lastName: ['', [Validators.required]],
@@ -25,6 +26,7 @@ export class FeDevQuestionnaireFormComponent implements OnInit {
     hobby: [[], [Validators.required]]
   });
 
+  //#region Form Controls Accessors 
   get firstName() {
     return <AbstractControl>this.form.get('firstName');
   }
@@ -52,12 +54,15 @@ export class FeDevQuestionnaireFormComponent implements OnInit {
   get hobby() {
     return <AbstractControl>this.form.get('hobby');
   }
+  //#endregion
 
   frameworks = frameworks;
-  frameworkVersions: string[] = [];
+  availableFrameworkVersions: string[] = [];
+
+  private unsubscribeOnDestroy: Subscription[] = [];
 
   constructor(
-    public dialogRef: MatDialogRef<FeDevQuestionnaireFormComponent>,
+    private dialogRef: MatDialogRef<FeDevQuestionnaireFormComponent>,
     private fb: FormBuilder,
     private dialog: MatDialog,
     private feDevsDataService: FrontendDevsDataService,
@@ -67,34 +72,50 @@ export class FeDevQuestionnaireFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.framework.valueChanges
-      .subscribe(frameworkName => {
-        if (this.frameworkVersion.disabled) {
-          this.frameworkVersion.enable();
-        }
+    const subscription = this.framework.valueChanges
+      .subscribe(frameworkName => this.updateAvailableFrameworkVersions(frameworkName));
 
-        const framework = frameworks.find(fw => fw.name === frameworkName);
-        this.frameworkVersions = framework?.versions || [];
-        this.frameworkVersion.setValue(null);
-      });
+    this.unsubscribeOnDestroy.push(subscription);
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscribeOnDestroy.forEach(s => s.unsubscribe());
+  }
+
+  addHobby() {
+    const hobbyDialogRef = this.dialog.open(HobbyFormComponent, {
+      width: '300px'
+    });
+
+    hobbyDialogRef.afterClosed().subscribe(hobby => {
+      if (hobby && hobby.name && hobby.duration) {
+        this.hobby.setValue([...this.hobby.value, hobby]);
+      }
+    });
+  }
+
+  removeHobby(hobby: Hobby) {
+    const newValue = (<Hobby[]>this.hobby.value).filter(h => h != hobby);
+    this.hobby.setValue(newValue);
   }
 
   save() {
     if (this.form.valid) {
       const value = this.form.value;
       this.form.disable();
-      this.feDevsDataService.saveQuestionnaire(value)
+      const subscription = this.feDevsDataService.saveQuestionnaire(value)
         .subscribe(
           next => {
             this.dialogRef.close();
             this.snackBar.open('Saved successfully', 'Ok');
           },
           error => {
-            this.form.enable();
             console.error(error);
             this.snackBar.open('Error occured', 'Ok');
           },
         );
+
+      this.unsubscribeOnDestroy.push(subscription);
     }
   }
 
@@ -116,21 +137,14 @@ export class FeDevQuestionnaireFormComponent implements OnInit {
     return 'Unknown error';
   }
 
-  addHobby() {
-    const hobbyDialogRef = this.dialog.open(HobbyFormComponent, {
-      width: '300px'
-    });
+  private updateAvailableFrameworkVersions(frameworkName: string) {
+    if (this.frameworkVersion.disabled) {
+      this.frameworkVersion.enable();
+    }
 
-    hobbyDialogRef.afterClosed().subscribe(hobby => {
-      if (hobby && hobby.name && hobby.duration) {
-        this.hobby.setValue([...this.hobby.value, hobby]);
-      }
-    });
-  }
-
-  removeHobby(hobby: Hobby) {
-    const newValue = (<Hobby[]>this.hobby.value).filter(h => h != hobby);
-    this.hobby.setValue(newValue);
+    const framework = frameworks.find(fw => fw.name === frameworkName);
+    this.availableFrameworkVersions = framework?.versions || [];
+    this.frameworkVersion.setValue(null);
   }
 
 }

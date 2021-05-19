@@ -38,7 +38,7 @@
         <mat-form-field appearance="fill">
             <mat-label>Version</mat-label>
             <mat-select formControlName="frameworkVersion" required>
-                <mat-option *ngFor="let fwVersion of frameworkVersions" [value]="fwVersion">
+                <mat-option *ngFor="let fwVersion of availableFrameworkVersions" [value]="fwVersion">
                     {{fwVersion}}
                 </mat-option>
             </mat-select>
