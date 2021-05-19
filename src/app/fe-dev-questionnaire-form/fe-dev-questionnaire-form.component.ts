@@ -1,14 +1,14 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { AbstractControl, FormBuilder, FormControl, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, Validators } from '@angular/forms';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Subscription } from 'rxjs';
 
 import { FrontendDevsDataService } from './frontend-devs-data.service';
 import { IsEmailExistsValidator } from './email-exists.validator';
 import frameworks from './frameworks-data';
 import { Hobby } from './hobby-form/hobby';
 import { HobbyFormComponent } from './hobby-form/hobby-form.component';
-import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-fe-dev-questionnaire-form',
@@ -72,10 +72,10 @@ export class FeDevQuestionnaireFormComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    const subscription = this.framework.valueChanges
+    const frameworkChangedSubscription = this.framework.valueChanges
       .subscribe(frameworkName => this.updateAvailableFrameworkVersions(frameworkName));
 
-    this.unsubscribeOnDestroy.push(subscription);
+    this.unsubscribeOnDestroy.push(frameworkChangedSubscription);
   }
 
   ngOnDestroy(): void {
@@ -87,11 +87,14 @@ export class FeDevQuestionnaireFormComponent implements OnInit, OnDestroy {
       width: '300px'
     });
 
-    hobbyDialogRef.afterClosed().subscribe(hobby => {
-      if (hobby && hobby.name && hobby.duration) {
-        this.hobby.setValue([...this.hobby.value, hobby]);
-      }
-    });
+    const dialogClosedSubscription = hobbyDialogRef.afterClosed()
+      .subscribe(hobby => {
+        if (hobby && hobby.name && hobby.duration) {
+          this.hobby.setValue([...this.hobby.value, hobby]);
+        }
+      });
+
+    this.unsubscribeOnDestroy.push(dialogClosedSubscription);
   }
 
   removeHobby(hobby: Hobby) {
@@ -103,7 +106,7 @@ export class FeDevQuestionnaireFormComponent implements OnInit, OnDestroy {
     if (this.form.valid) {
       const value = this.form.value;
       this.form.disable();
-      const subscription = this.feDevsDataService.saveQuestionnaire(value)
+      const questionnaireSavedSubscription = this.feDevsDataService.saveQuestionnaire(value)
         .subscribe(
           next => {
             this.dialogRef.close();
@@ -115,7 +118,7 @@ export class FeDevQuestionnaireFormComponent implements OnInit, OnDestroy {
           },
         );
 
-      this.unsubscribeOnDestroy.push(subscription);
+      this.unsubscribeOnDestroy.push(questionnaireSavedSubscription);
     }
   }
 
